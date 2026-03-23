@@ -1,0 +1,19 @@
+usage: screen-analyze [-h] [--whisper MODEL] [--frame-skip N] [--max-frames N]
+                      [--ocr-lang LANG] [--no-actions] [--format {json,text}]
+                      video
+
+Analyze a screen recording: transcribe audio, OCR frames, extract user
+actions.
+
+positional arguments:
+  video                 Path to video file (mp4, mov, mkv, ...)
+
+options:
+  -h, --help            show this help message and exit
+  --whisper MODEL       Whisper model size: tiny|base|small|medium|large
+                        (default: base)
+  --frame-skip N        Analyze every N+1 frames (default: 29 = every 30th)
+  --max-frames N        Max frames to OCR (default: 100)
+  --ocr-lang LANG       Tesseract language code (default: eng)
+  --no-actions          Skip GPT action extraction step
+  --format {json,text}  Output format (default: text)

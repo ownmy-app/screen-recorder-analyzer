@@ -14,6 +14,37 @@ Extracts a chronological list of what the user was doing:
 
 ---
 
+## Quick start
+
+```bash
+# System requirements
+brew install ffmpeg tesseract          # macOS
+sudo apt install ffmpeg tesseract-ocr  # Ubuntu
+
+# Install (base — just needs OPENAI_API_KEY)
+pip install screen-recorder-analyzer
+
+# Install with all OCR/audio engines
+pip install screen-recorder-analyzer[full]
+
+# Set API key
+export OPENAI_API_KEY=sk-proj-...
+
+# Analyze a recording
+screen-analyze demo.mp4
+
+# JSON output (suitable for piping)
+screen-analyze demo.mp4 --format json
+
+# Run tests (no GPU/OCR/Whisper required)
+git clone https://github.com/ownmy-app/screen-recorder-analyzer
+cd screen-recorder-analyzer
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+---
+
 ## Install
 
 ```bash
@@ -111,3 +142,30 @@ for action in actions:
 - CLI: open source
 - API: self-hostable, or offer as a cloud service (pay per minute of video processed)
 - Paid: team dashboards, tool usage analytics, process bottleneck detection
+
+---
+
+## Example output
+
+Running `pytest tests/ -v`:
+
+```
+============================= test session starts ==============================
+platform darwin -- Python 3.13.9, pytest-9.0.2, pluggy-1.5.0
+cachedir: .pytest_cache
+rootdir: /tmp/ownmy-releases/screen-recorder-analyzer
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.1.0
+collecting ... collected 6 items
+
+tests/test_processor.py::test_processor_imports_cleanly PASSED           [ 16%]
+tests/test_processor.py::test_video_processor_init PASSED                [ 33%]
+tests/test_processor.py::test_video_processor_missing_file PASSED        [ 50%]
+tests/test_processor.py::test_extract_actions_raises_without_api_key PASSED [ 66%]
+tests/test_processor.py::test_action_prompt_structure PASSED             [ 83%]
+tests/test_processor.py::test_api_app_creates SKIPPED (fastapi not i...) [100%]
+
+========================= 5 passed, 1 skipped in 0.65s =========================
+```
+
+See `examples/sample-output.json` for what a full analysis of a user session looks like.

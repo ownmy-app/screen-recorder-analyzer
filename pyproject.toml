@@ -33,8 +33,12 @@ dev = ["pytest>=8.0", "pytest-cov", "httpx>=0.27.0"]
 screen-analyze = "screen_recorder_analyzer.cli:main"
 screen-analyze-api = "screen_recorder_analyzer.api:app"
 
-[tool.hatch.build.targets.wheel.sources]
-"src" = "screen_recorder_analyzer"
+[tool.hatch.build.targets.wheel]
+packages = ["screen_recorder_analyzer"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
+
+[project.urls]
+Repository = "https://github.com/ownmy-app/screen-recorder-analyzer"

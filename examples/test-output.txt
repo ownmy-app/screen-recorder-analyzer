@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.9, pytest-9.0.2, pluggy-1.5.0 -- /Users/architsharma/miniconda3/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /private/tmp/ownmy-releases/screen-recorder-analyzer
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.1.0
+collecting ... collected 6 items
+
+tests/test_processor.py::test_processor_imports_cleanly PASSED           [ 16%]
+tests/test_processor.py::test_video_processor_init PASSED                [ 33%]
+tests/test_processor.py::test_video_processor_missing_file PASSED        [ 50%]
+tests/test_processor.py::test_extract_actions_raises_without_api_key PASSED [ 66%]
+tests/test_processor.py::test_action_prompt_structure PASSED             [ 83%]
+tests/test_processor.py::test_api_app_creates SKIPPED (fastapi not i...) [100%]
+
+========================= 5 passed, 1 skipped in 0.65s =========================

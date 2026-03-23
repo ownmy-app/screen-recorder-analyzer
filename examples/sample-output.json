@@ -1,0 +1,83 @@
+{
+  "video_file": "user-session-2026-03-22.mp4",
+  "duration_seconds": 847,
+  "frames_analyzed": 85,
+  "audio_transcribed": true,
+  "whisper_model": "base",
+  "processed_at": "2026-03-22T14:30:00Z",
+  "transcript": "Okay let me pull up the dashboard... so I need to find the contacts section. Let me search for... Johnson. There it is. Now let me check the deal history... okay I'm going to send him a follow up email. Let me open Gmail. Subject: Following up on the proposal. Hi Mike...",
+  "actions": [
+    {
+      "id": "1",
+      "timestamp_start": 0,
+      "timestamp_end": 12,
+      "tools": ["chrome"],
+      "action": ["navigating to web application", "loading dashboard"]
+    },
+    {
+      "id": "2",
+      "timestamp_start": 12,
+      "timestamp_end": 45,
+      "tools": ["hubspot"],
+      "action": ["navigating CRM", "searching contacts", "viewing contact record for Mike Johnson"]
+    },
+    {
+      "id": "3",
+      "timestamp_start": 45,
+      "timestamp_end": 128,
+      "tools": ["hubspot"],
+      "action": ["viewing deal history", "reviewing proposal details", "checking contact notes"]
+    },
+    {
+      "id": "4",
+      "timestamp_start": 128,
+      "timestamp_end": 180,
+      "tools": ["gmail"],
+      "action": ["opening email client", "composing new email", "writing follow-up message"]
+    },
+    {
+      "id": "5",
+      "timestamp_start": 180,
+      "timestamp_end": 215,
+      "tools": ["gmail"],
+      "action": ["sending email to Mike Johnson", "email sent confirmation"]
+    },
+    {
+      "id": "6",
+      "timestamp_start": 215,
+      "timestamp_end": 380,
+      "tools": ["excel", "chrome"],
+      "action": ["switching to spreadsheet", "updating pipeline forecast", "entering deal values"]
+    },
+    {
+      "id": "7",
+      "timestamp_start": 380,
+      "timestamp_end": 490,
+      "tools": ["figma"],
+      "action": ["opening design tool", "viewing UI mockup", "reviewing component designs"]
+    },
+    {
+      "id": "8",
+      "timestamp_start": 490,
+      "timestamp_end": 600,
+      "tools": ["vscode"],
+      "action": ["switching to code editor", "editing React component", "running tests in terminal"]
+    },
+    {
+      "id": "9",
+      "timestamp_start": 600,
+      "timestamp_end": 720,
+      "tools": ["terminal", "vscode"],
+      "action": ["running build command", "reviewing build output", "fixing TypeScript error"]
+    },
+    {
+      "id": "10",
+      "timestamp_start": 720,
+      "timestamp_end": 847,
+      "tools": ["github"],
+      "action": ["opening pull request", "reviewing code diff", "approving and merging PR"]
+    }
+  ],
+  "tools_used": ["chrome", "hubspot", "gmail", "excel", "figma", "vscode", "terminal", "github"],
+  "summary": "User session focused on sales pipeline management and development work. Started with CRM contact review and email follow-up (HubSpot + Gmail), then updated sales forecast in Excel. Switched to product work: reviewed Figma designs, implemented changes in VS Code, fixed a TypeScript error, and merged a pull request on GitHub."
+}
