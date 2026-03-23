@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "screen-recorder-analyzer"
+version = "0.1.0"
+description = "Analyze screen recordings: Whisper transcription + Tesseract OCR + GPT action extraction. CLI and REST API."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = ["screen-recording", "ocr", "whisper", "transcription", "action-extraction", "fastapi"]
+dependencies = [
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+full = [
+    "openai-whisper>=20240930",
+    "torch>=2.0.0",
+    "opencv-python>=4.6.0",
+    "pytesseract>=0.3.13",
+    "moviepy>=2.0.0",
+]
+api = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+]
+dev = ["pytest>=8.0", "pytest-cov", "httpx>=0.27.0"]
+
+[project.scripts]
+screen-analyze = "screen_recorder_analyzer.cli:main"
+screen-analyze-api = "screen_recorder_analyzer.api:app"
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = "screen_recorder_analyzer"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
