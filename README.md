@@ -37,7 +37,7 @@ screen-analyze demo.mp4
 screen-analyze demo.mp4 --format json
 
 # Run tests (no GPU/OCR/Whisper required)
-git clone https://github.com/ownmy-app/screen-recorder-analyzer
+git clone https://github.com/nometria/screen-recorder-analyzer
 cd screen-recorder-analyzer
 pip install -e ".[dev]"
 pytest tests/ -v
