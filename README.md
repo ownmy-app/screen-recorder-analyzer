@@ -1,16 +1,6 @@
 # screen-recorder-analyzer
 
-<div align="center">
-
-**[Nometria](https://nometria.com)** takes AI-built apps to production on AWS — secure, scalable, ready for real users.
-
-<sub><i>Understanding how users interact with deployed apps is critical. We built this to extract actionable insights from screen recordings -- transcription, OCR, and AI-powered action detection.</i></sub>
-
-[![Deploy with Nometria](https://img.shields.io/badge/Deploy%20with-Nometria-111827?style=for-the-badge)](https://nometria.com)
-
-</div>
-
----
+Built by the [Nometria](https://nometria.com) team — we take AI-built apps to production.
 
 > Analyze any screen recording: Whisper audio transcription + Tesseract OCR on keyframes + GPT action extraction. CLI and REST API.
 
@@ -228,6 +218,3 @@ tests/test_processor.py::test_api_app_creates SKIPPED (fastapi not i...) [100%]
 
 See `examples/sample-output.json` for what a full analysis of a user session looks like.
 
----
-
-<p align="center">Made with ❤️ by <a href="https://nometria.com">Nometria</a> — deploy AI apps to production in one click</p>
