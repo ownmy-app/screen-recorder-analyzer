@@ -98,7 +98,10 @@ def ask_llm(
 def _ask_openai(prompt, system, max_tokens, temperature, response_json):
     import openai as _openai
 
-    client = _openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY is not set. Export it or switch LLM_PROVIDER.")
+    client = _openai.OpenAI(api_key=api_key)
     messages = []
     if system:
         messages.append({"role": "system", "content": system})

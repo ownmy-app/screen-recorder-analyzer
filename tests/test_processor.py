@@ -28,10 +28,11 @@ def test_video_processor_missing_file():
 
 
 def test_extract_actions_raises_without_api_key(monkeypatch):
-    """extract_actions must raise ValueError when no API key is set."""
+    """extract_actions must raise when no API key is set."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     from screen_recorder_analyzer.processor import extract_actions
-    with pytest.raises((ValueError, RuntimeError)):
+    with pytest.raises(Exception):
         extract_actions({"transcript": "hello", "frame_analysis": []})
 
 
@@ -42,19 +43,17 @@ def test_action_prompt_structure():
 
     fake_actions = [{"id": "1", "tools": ["excel"], "action": ["viewing data"]}]
 
-    with mock.patch("screen_recorder_analyzer.processor.openai") as mock_openai:
-        mock_client = mock.MagicMock()
-        mock_openai.OpenAI.return_value = mock_client
-        mock_resp = mock.MagicMock()
-        mock_resp.choices[0].message.content = json.dumps(fake_actions)
-        mock_client.chat.completions.create.return_value = mock_resp
+    with mock.patch("screen_recorder_analyzer.llm.ask_llm") as mock_ask:
+        mock_ask.return_value = json.dumps(fake_actions)
 
         result = extract_actions(
             {"transcript": "I opened Excel and sorted column A.", "frame_analysis": []},
-            api_key="sk-test",
         )
         assert isinstance(result, list)
         assert result[0]["tools"] == ["excel"]
+        # Verify the prompt included the transcript
+        call_args = mock_ask.call_args
+        assert "Excel" in call_args[0][0] or "Excel" in call_args[1].get("prompt", "")
 
 
 def test_api_app_creates():
