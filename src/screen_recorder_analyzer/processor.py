@@ -34,12 +34,63 @@ try:
 except ImportError:
     VideoFileClip = None
 
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 DEFAULT_WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "base")
 DEFAULT_WHISPER_BACKEND = os.environ.get("WHISPER_BACKEND", "local").lower().strip()
 DEFAULT_FRAME_SKIP = int(os.environ.get("FRAME_SKIP", "29"))
 DEFAULT_MAX_FRAMES = int(os.environ.get("MAX_FRAMES", "100"))
 DEFAULT_OCR_LANG = os.environ.get("OCR_LANG", "eng")
 DEFAULT_OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
+# Minimum mean-squared-error between frames before we consider them different
+DEFAULT_FRAME_DIFF_THRESHOLD = float(os.environ.get("FRAME_DIFF_THRESHOLD", "500"))
+
+
+def _is_dark_theme(gray_frame) -> bool:
+    """Detect if a frame is dark-themed (light text on dark background)."""
+    if np is None:
+        return False
+    mean_val = float(np.mean(gray_frame))
+    return mean_val < 100  # below ~40% brightness
+
+
+def _preprocess_for_ocr(gray_frame):
+    """Apply adaptive preprocessing to improve OCR accuracy.
+
+    Handles dark themes (inverts), applies denoising, and uses adaptive
+    thresholding for better text extraction.
+    """
+    if cv2 is None or np is None:
+        return gray_frame
+
+    processed = gray_frame.copy()
+
+    # Dark theme: invert so text becomes dark on light background
+    if _is_dark_theme(processed):
+        processed = cv2.bitwise_not(processed)
+
+    # Denoise with bilateral filter (preserves edges)
+    processed = cv2.bilateralFilter(processed, 9, 75, 75)
+
+    # Adaptive thresholding for better text/background separation
+    processed = cv2.adaptiveThreshold(
+        processed, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 10
+    )
+
+    return processed
+
+
+def _frames_are_similar(frame_a, frame_b, threshold: float = DEFAULT_FRAME_DIFF_THRESHOLD) -> bool:
+    """Check if two frames are visually similar enough to skip OCR on the second."""
+    if np is None or frame_a is None or frame_b is None:
+        return False
+    if frame_a.shape != frame_b.shape:
+        return False
+    mse = float(np.mean((frame_a.astype(float) - frame_b.astype(float)) ** 2))
+    return mse < threshold
 
 
 class VideoProcessor:
@@ -50,12 +101,16 @@ class VideoProcessor:
         frame_skip: int = DEFAULT_FRAME_SKIP,
         max_frames: Optional[int] = DEFAULT_MAX_FRAMES,
         ocr_lang: str = DEFAULT_OCR_LANG,
+        preprocess_ocr: bool = True,
+        dedup_frames: bool = True,
     ):
         self.whisper_model_size = whisper_model_size
         self.whisper_backend = whisper_backend  # "local" or "api"
         self.frame_skip = frame_skip
         self.max_frames = max_frames
         self.ocr_lang = ocr_lang
+        self.preprocess_ocr = preprocess_ocr
+        self.dedup_frames = dedup_frames
         self._whisper_model = None  # lazy-loaded only when backend == "local"
         self.device = "cuda" if torch and torch.cuda.is_available() else "cpu"
         self.tesseract_ok = False
@@ -86,7 +141,7 @@ class VideoProcessor:
         Transcribe audio to text.
 
         When ``WHISPER_BACKEND=api`` (or ``whisper_backend='api'`` in the
-        constructor), uses the OpenAI Whisper API — no local model download
+        constructor), uses the OpenAI Whisper API -- no local model download
         required.  Otherwise falls back to the local ``openai-whisper`` package.
         """
         if self.whisper_backend == "api":
@@ -133,13 +188,23 @@ class VideoProcessor:
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         results, frame_num, analyzed = [], 0, 0
+        prev_gray = None
         try:
             while True:
                 ret, frame = cap.read()
                 if not ret:
                     break
                 if frame_num % (self.frame_skip + 1) == 0:
-                    results.append(self._analyze_frame(frame, frame_num, fps))
+                    # Convert to grayscale for comparison/OCR
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) if cv2 else None
+
+                    # Frame deduplication: skip near-identical frames
+                    if self.dedup_frames and prev_gray is not None and _frames_are_similar(gray, prev_gray):
+                        frame_num += 1
+                        continue
+
+                    results.append(self._analyze_frame(frame, frame_num, fps, gray=gray))
+                    prev_gray = gray
                     analyzed += 1
                     if self.max_frames and analyzed >= self.max_frames:
                         break
@@ -148,15 +213,20 @@ class VideoProcessor:
             cap.release()
         return results
 
-    def _analyze_frame(self, frame, frame_num: int, fps: float) -> Dict[str, Any]:
+    def _analyze_frame(self, frame, frame_num: int, fps: float, gray=None) -> Dict[str, Any]:
         ts = round(frame_num / fps, 2)
         result = {"frame_number": frame_num, "timestamp_sec": ts, "status": "pending", "text": None}
         if not pytesseract or not self.tesseract_ok:
             result["status"] = "skipped"
             return result
         try:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            text = pytesseract.image_to_string(gray, config=f"--psm 6 -l {self.ocr_lang}", timeout=10)
+            if gray is None:
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # Apply preprocessing if enabled
+            ocr_input = _preprocess_for_ocr(gray) if self.preprocess_ocr else gray
+
+            text = pytesseract.image_to_string(ocr_input, config=f"--psm 6 -l {self.ocr_lang}", timeout=10)
             result["text"] = text
             result["status"] = "ok"
         except Exception as e:
@@ -179,6 +249,46 @@ class VideoProcessor:
 
         results["frame_analysis"] = self.analyze_frames(video_path)
         return results
+
+
+def _parse_llm_actions(raw: str) -> List[Dict[str, Any]]:
+    """Parse LLM response into a list of action dicts.
+
+    Handles:
+    - Bare JSON arrays: [{"id": "1", ...}]
+    - Wrapped in markdown code fences: ```json ... ```
+    - Wrapped in a JSON object: {"actions": [...]}
+    - Extra whitespace/newlines
+    """
+    text = raw.strip()
+
+    # Strip markdown code fences if present
+    if text.startswith("```"):
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
+    text = text.strip()
+
+    parsed = json.loads(text)
+
+    # If the LLM wrapped the list in an object, try to extract it
+    if isinstance(parsed, dict):
+        # Try common wrapper keys
+        for key in ("actions", "results", "data", "items"):
+            if key in parsed and isinstance(parsed[key], list):
+                return parsed[key]
+        # If there's only one key and its value is a list, use that
+        values = list(parsed.values())
+        if len(values) == 1 and isinstance(values[0], list):
+            return values[0]
+        raise ValueError(
+            f"LLM returned a JSON object but no recognizable action list. Keys: {list(parsed.keys())}"
+        )
+
+    if not isinstance(parsed, list):
+        raise ValueError(f"Expected JSON array from LLM, got {type(parsed).__name__}")
+
+    return parsed
 
 
 def extract_actions(results: Dict[str, Any], api_key: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -224,9 +334,4 @@ def extract_actions(results: Dict[str, Any], api_key: Optional[str] = None) -> L
         response_json=True,
     ).strip()
 
-    # Strip markdown code fences if present
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-    return json.loads(raw.strip())
+    return _parse_llm_actions(raw)

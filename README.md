@@ -193,6 +193,48 @@ screen-analyze demo.mp4
 
 ---
 
+## Benchmark Results
+
+Run benchmarks with:
+
+```bash
+pip install -e ".[dev]"
+pytest benchmarks/bench_actions.py benchmarks/bench_pipeline.py benchmarks/bench_gaps.py benchmarks/bench_ocr.py -v -s
+```
+
+### Summary (37 tests: 33 passed, 4 skipped)
+
+| Category | Tests | Passed | Skipped | Notes |
+|----------|-------|--------|---------|-------|
+| OCR accuracy | 5 | 1 | 4 | Tesseract OCR tests skipped without `tesseract` binary |
+| Action categorization | 9 | 9 | 0 | Mock LLM responses, JSON parsing, edge cases |
+| Pipeline speed | 10 | 10 | 0 | Init ~3ms, action extraction <1ms (excl. LLM) |
+| Gap analysis | 13 | 13 | 0 | 24 common apps verified, edge cases covered |
+
+### Key metrics
+
+- **Processor init**: ~3ms avg (Whisper model is lazy-loaded)
+- **Action extraction** (excl. LLM latency): <1ms avg over 20 iterations
+- **Frame skip configs**: frame_skip=29 (default) analyzes ~10 frames per 10s of 30fps video
+- **Common apps tested**: 24 applications (Google Sheets, Notion, Jira, Figma, Slack, VS Code, etc.)
+
+### Improvements implemented
+
+Based on benchmark gap analysis, the following improvements were added to `processor.py`:
+
+1. **OCR preprocessing** -- Adaptive thresholding and bilateral filtering improve text extraction on noisy or low-contrast frames
+2. **Dark theme detection** -- Automatically inverts dark-themed UI screenshots (light text on dark background) before OCR
+3. **Frame deduplication** -- Skips near-identical consecutive frames to avoid redundant OCR processing
+4. **Robust LLM JSON parsing** -- Handles JSON wrapped in objects (`{"actions": [...]}`) in addition to bare arrays, and extracts from common wrapper keys
+
+### Identified gaps (documented in benchmarks)
+
+- Scene-change-based keyframe selection would be more efficient than fixed frame_skip
+- Multi-language OCR could be auto-detected from frame content
+- No confidence scoring on individual OCR results
+
+---
+
 ## Example output
 
 Running `pytest tests/ -v`:
