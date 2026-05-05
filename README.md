@@ -193,6 +193,42 @@ screen-analyze demo.mp4
 
 ---
 
+## Industry Benchmark Context
+
+This project combines three ML pipelines (speech recognition, OCR, action extraction). Below are industry-standard reference scores for interpreting our benchmark results.
+
+### Speech Recognition (Whisper)
+
+| Model | LibriSpeech Clean WER | LibriSpeech Other WER | Notes |
+|-------|----------------------|----------------------|-------|
+| Whisper Large-v3 | 2.0-2.7% | 5.2% | Near-human accuracy |
+| Whisper Small | 3.4% | 7.6% | Good balance of speed/accuracy |
+| Whisper Base (our default) | 5.6% | 13.7% | Fast, suitable for real-time |
+| Human baseline | 4.0-6.8% | 6.8% | Professional transcriptionists |
+
+WER = Word Error Rate (lower is better). LibriSpeech is the standard benchmark for English speech recognition.
+
+### Screen OCR (Tesseract)
+
+| Scenario | Character Accuracy | Word Accuracy | Notes |
+|----------|-------------------|---------------|-------|
+| Clean printed text (300 dpi) | 95-99% | 95%+ | Ideal conditions |
+| Screen captures (mixed fonts) | 80-90% | 82-90% | Our target scenario |
+| ICDAR 2015 scene text (top systems) | -- | 85-95% | Text-in-the-wild, different from screen OCR |
+| Our pipeline (with preprocessing) | Measured in benchmarks | Measured in benchmarks | Dark theme inversion + adaptive threshold |
+
+ICDAR (International Conference on Document Analysis and Recognition) provides standard benchmarks for scene text recognition, but screen OCR (anti-aliased fonts, UI chrome, dark themes) is a distinct challenge with no single standard benchmark.
+
+### Action Extraction
+
+Screen-to-action extraction is a **novel task** with no industry-standard benchmark. Our pipeline combines Whisper transcription + Tesseract OCR + LLM inference to produce structured action logs from arbitrary desktop recordings. The closest analogues are:
+
+- **Process mining**: operates on structured event logs, not raw video
+- **Activity recognition**: classifies video into predefined categories, not arbitrary desktop workflows
+- **UI understanding**: emerging research area, no established benchmark datasets for desktop recordings
+
+---
+
 ## Benchmark Results
 
 Run benchmarks with:
