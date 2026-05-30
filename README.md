@@ -1,6 +1,6 @@
 # screen-recorder-analyzer
 
-Built by the [Nometria](https://nometria.com) team. We help developers take apps built with AI tools (Lovable, Bolt, Base44, Replit) to production — handling deployment to AWS, security, scaling, and giving you full code ownership. [Learn more →](https://nometria.com)
+Built by the [Nometria](https://nometria.com) team. We help developers take apps built with AI tools (Lovable, Bolt, Base44, Replit) to production - handling deployment to AWS, security, scaling, and giving you full code ownership. [Learn more →](https://nometria.com)
 
 > Analyze any screen recording: Whisper audio transcription + Tesseract OCR on keyframes + GPT action extraction. CLI and REST API.
 
@@ -178,10 +178,10 @@ screen-analyze demo.mp4
 
 ## Use cases
 
-- **Productivity analysis** — understand how employees use tools
-- **UX research** — extract task flows from usability test recordings
-- **Process mining** — map manual workflows before automating them
-- **Support** — auto-summarize customer screen shares
+- **Productivity analysis** - understand how employees use tools
+- **UX research** - extract task flows from usability test recordings
+- **Process mining** - map manual workflows before automating them
+- **Support** - auto-summarize customer screen shares
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-screen-analyze CLI — one command does it all.
+screen-analyze CLI - one command does it all.
 
 Usage:
   screen-analyze video.mp4                              # transcribe + OCR + actions

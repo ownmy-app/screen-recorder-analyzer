@@ -1,4 +1,4 @@
-"""Tests for screen-recorder-analyzer — no GPU/video files required."""
+"""Tests for screen-recorder-analyzer - no GPU/video files required."""
 import sys
 import os
 import json
